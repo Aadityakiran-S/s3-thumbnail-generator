@@ -1,0 +1,13 @@
+lockfileVersion: 5.4
+
+specifiers:
+  underscore: ^1.13.6
+
+dependencies:
+  underscore: 1.13.6
+
+packages:
+
+  /underscore/1.13.6:
+    resolution: {integrity: sha512-+A5Sja4HP1M08MaXya7p5LvjuM7K6q/2EaC0+iovj/wOcMsTzMvDFbasi/oSapiwOlt252IqsKqPjCl7huKS0A==}
+    dev: false
