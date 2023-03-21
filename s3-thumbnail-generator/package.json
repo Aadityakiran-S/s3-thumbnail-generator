@@ -1,5 +1,6 @@
 {
 	"dependencies": {
+		"sharp": "^0.31.3",
 		"underscore": "^1.13.6"
 	}
 }
