@@ -20,12 +20,22 @@ Resources:
     Properties:
       BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}" # #TOASK: Is setting bucket name like this the right way to do?
 
+  SharpLambdaLayer:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location:
+        ApplicationId: arn:aws:serverlessrepo:us-east-1:987481058235:applications/nodejs-sharp-lambda-layer
+        SemanticVersion: 0.28.3
+
   GenerateThumbnailFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: handlers/
       Handler: app.generateThumbnail
       Runtime: nodejs14.x
+      Layers:
+        # - !GetAtt ["SharpLambdaLayer", "Outputs.LayerVersion"]
+        - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:${SharpLambdaLayer}:"
       Architectures:
         - x86_64
       Policies: # Policy to allow the function to upload to the same S3 bucket
