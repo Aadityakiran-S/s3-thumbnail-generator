@@ -1,0 +1,10 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "s3-thumbnail-generator"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-r3wf7rt6ikj8"
+s3_prefix = "s3-thumbnail-generator"
+region = "ap-south-1"
+capabilities = "CAPABILITY_IAM"
+image_repositories = []
