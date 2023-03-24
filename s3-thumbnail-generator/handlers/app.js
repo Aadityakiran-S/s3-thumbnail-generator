@@ -2,6 +2,8 @@ const AWS = require('aws-sdk');
 const s3 = new AWS.S3();
 const sharp = require('sharp');
 
+let response;
+
 exports.generateThumbnail = async (event, context) => {
     const bucketName = event.Records[0].s3.bucket.name;  // #TOASK: You could get this from env variables right? How do you do that? Is that the reccomended way?
     const objectKey = event.Records[0].s3.object.key;
@@ -22,13 +24,39 @@ exports.generateThumbnail = async (event, context) => {
         return response;
     }
 
+    // #TOASK: I could break the below stuff down into a function but then how do I sure that I return from that and this at the same time if some error occurs?
     // Process the image using Sharp
     let thumbnailImage;
     try {
-        thumbnailImage = await sharp(originalImage.body)
-            .resize({ width: null, height: null, aspectRatio: 1 / 2 })
-            .toBuffer()
-            .toFormat("jpeg", { mozjpeg: true });
+        //Processing once to change aspect ratio
+        thumbnailImage = await sharp(originalImage)
+            // #TOASK: Is setting the width and height to hardcoded values like this the right thing to do?
+            .resize({
+                width: 1000, // set the width to 1000 pixels
+                height: 500, // set the height to half of the width (1:2 aspect ratio)
+                fit: 'fill', // specify how to fit the image in case it doesn't have the exact aspect ratio
+                position: 'center' // specify where to position the image if there's any whitespace
+            })
+            .toFormat("jpeg", { mozjpeg: true })
+            .toBuffer();
+
+        // Reduce the quality setting until the output buffer is below 10KB
+        let outputQuality = 100;
+        while (thumbnailImage.length > 30000 && outputQuality >= 10) {
+            thumbnailImage = await sharp(originalImage)
+                .toFormat("jpeg", { mozjpeg: true })
+                .jpeg({ quality: outputQuality })
+                .toBuffer();
+            outputQuality -= 10;
+        }
+
+        //Throwing an error if after proccessing still image is large
+        if (thumbnailImage.length > 30000) {
+            response = {
+                statusCode: 500,
+                body: `Can't reduce size even after appreciable quality drop. Please upload a smaller input image`,
+            };
+        }
     } catch (error) {
         response = {
             statusCode: 500,
@@ -36,15 +64,6 @@ exports.generateThumbnail = async (event, context) => {
         };
         return response;
     }
-    // // Reduce the quality setting until the output buffer is below 10KB
-    // let quality = 90;
-    // while (thumbnailImage.length > 10000 && quality >= 10) {
-    //     thumbnailImage = sharp(originalImage.body)
-    //         .resize({ width: null, height: null, aspectRatio: 1 / 2 })
-    //         .jpeg({ quality: quality })
-    //         .toBuffer();
-    //     quality -= 10;
-    // }
 
     // Upload the thumbnail to S3
     let putToS3Response;
