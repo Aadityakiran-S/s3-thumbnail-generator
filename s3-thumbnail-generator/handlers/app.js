@@ -49,7 +49,7 @@ exports.generateThumbnail = async (event, context) => {
                 .toBuffer();
             outputQuality -= 10;
         }
-
+        // #TOASK: How do we prevent larger files from being uploaded like we did earlier? Using form-data can we upload to S3? I think we should be able to.
         //Throwing an error if after proccessing still image is large
         if (thumbnailImage.length > 30000) {
             response = {
